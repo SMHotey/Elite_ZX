@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ELITE ONLINE</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',monospace;background:#050810;color:#8090a0;overflow:hidden;height:100vh}
+#auth{position:fixed;inset:0;background:radial-gradient(ellipse at center,#0a1525,#050810);display:flex;align-items:center;justify-content:center;z-index:999}
+#auth.hidden{display:none}
+.auth-box{width:380px;max-width:90vw;background:rgba(10,20,40,.95);border:1px solid #1a3050;border-radius:12px;padding:30px;text-align:center;box-shadow:0 0 40px rgba(0,255,204,.05)}
+.auth-box h1{color:#00ffcc;font-size:36px;letter-spacing:8px;text-shadow:0 0 20px rgba(0,255,204,.5);margin-bottom:4px}
+.auth-box .sub{color:#00ff66;font-size:10px;letter-spacing:2px;margin-bottom:24px}
+.tabs{display:flex;margin-bottom:20px;border-radius:6px;overflow:hidden;border:1px solid #1a3050}
+.tabs button{flex:1;padding:10px;background:#0a101d;border:none;color:#607080;cursor:pointer;font-family:inherit;font-size:12px;transition:.2s}
+.tabs button.active{background:#00ffcc;color:#050810;font-weight:bold}
+.field{margin-bottom:12px;text-align:left}
+.field label{display:block;font-size:10px;color:#607080;margin-bottom:3px}
+.field input{width:100%;padding:10px;background:#0a101d;border:1px solid #1a3050;border-radius:6px;color:#e0f0ff;font-family:inherit;font-size:13px;outline:none;transition:.2s}
+.field input:focus{border-color:#00ffcc;box-shadow:0 0 8px rgba(0,255,204,.15)}
+.err{color:#ff3344;font-size:11px;min-height:18px;margin-bottom:8px;text-align:center}
+.btn{padding:12px 16px;border:none;border-radius:8px;cursor:pointer;font-family:inherit;font-size:12px;text-transform:uppercase;letter-spacing:1px;transition:.2s;width:100%}
+.btn-main{background:linear-gradient(135deg,#00ffcc,#0088ff);color:#050810;font-weight:bold;margin-bottom:8px}
+.btn-main:hover{box-shadow:0 0 15px rgba(0,255,204,.3);transform:translateY(-1px)}
+.btn-guest{background:transparent;border:1px dashed #405060;color:#607080;font-size:11px;padding:8px}
+.btn-guest:hover{border-color:#00ffcc;color:#00ffcc}
+.btn-s{background:transparent;border:1px solid #1a3050;color:#8090a0;padding:6px 12px;font-size:11px;width:auto}
+.btn-s:hover{border-color:#00ffcc;color:#00ffcc}
+.btn-ok{background:#00ff66;color:#050810;font-weight:bold;padding:6px 12px;font-size:11px;width:auto}
+.btn-r{background:#ff3344;color:#fff;padding:6px 12px;font-size:11px;width:auto}
+#game{display:none;flex-direction:column;height:100vh}
+#game.active{display:flex}
+.hdr{background:rgba(10,16,29,.95);border-bottom:1px solid #1a3050;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.hdr-l{display:flex;align-items:center;gap:16px}
+.hdr-l .logo{color:#00ffcc;font-size:18px;letter-spacing:4px;font-weight:bold}
+.hdr-l .stat{font-size:12px;display:flex;align-items:center;gap:4px}
+.hdr-l .stat span{color:#e0f0ff;font-weight:bold}
+.hdr-r{display:flex;align-items:center;gap:10px}
+.hdr-r .pname{color:#00ff66;font-weight:bold;font-size:13px}
+.body{flex:1;display:flex;overflow:hidden}
+.side{width:190px;background:rgba(10,16,29,.95);border-right:1px solid #1a3050;display:flex;flex-direction:column;flex-shrink:0}
+.side-nav{flex:1;padding:8px}
+.side-nav button{display:flex;align-items:center;gap:10px;width:100%;padding:10px;background:none;border:none;color:#607080;cursor:pointer;font-family:inherit;font-size:11px;border-radius:6px;text-align:left;margin-bottom:2px}
+.side-nav button:hover{background:rgba(0,255,204,.04);color:#b0c0d0}
+.side-nav button.on{background:rgba(0,255,204,.08);color:#00ffcc}
+.side-nav button .ic{width:20px;text-align:center;font-size:14px}
+.side-info{padding:10px;border-top:1px solid #1a3050;font-size:10px}
+.side-info .row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(26,48,80,.4)}
+.side-info .row .v{color:#e0f0ff;font-weight:bold}
+.content{flex:1;overflow-y:auto;padding:14px;background:#080c14}
+.panel{background:rgba(17,26,46,.9);border:1px solid #1a3050;border-radius:10px;padding:16px;margin-bottom:12px}
+.panel h2{font-size:14px;color:#00ffcc;margin-bottom:12px;letter-spacing:2px}
+.cockpit{position:relative;width:100%;height:400px;border-radius:10px;overflow:hidden;background:#000;border:1px solid #1a3050}
+#cv{width:100%;height:100%;display:block}
+.hud{position:absolute;inset:0;pointer-events:none}
+.hud-t{position:absolute;top:10px;left:50%;transform:translateX(-50%);text-align:center}
+.hud-t .sn{font-size:16px;color:#00ffcc;text-shadow:0 0 8px rgba(0,255,204,.4)}
+.hud-t .st{font-size:10px;color:#00ff66;margin-top:2px}
+.hud-b{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:28px}
+.hud-b .hi{text-align:center}
+.hud-b .hl{font-size:8px;color:#607080;letter-spacing:1px}
+.hud-b .hv{font-size:14px;color:#00ffcc;font-weight:bold}
+.hud-l{position:absolute;left:12px;top:50%;transform:translateY(-50%)}
+.hud-box{background:rgba(0,0,0,.75);border:1px solid #1a3050;border-radius:7px;padding:10px;pointer-events:auto}
+.hud-box h4{font-size:9px;color:#00ffcc;margin-bottom:8px;letter-spacing:1px}
+.bar-c{margin-bottom:5px}
+.bar-c .bl{font-size:8px;color:#607080;margin-bottom:2px}
+.bar{height:4px;background:#0a101d;border-radius:2px;overflow:hidden}
+.bar .bf{height:100%;border-radius:2px;transition:width .4s}
+.bf.e{background:#00ffcc}.bf.sh{background:#0088ff}.bf.fu{background:#ffcc00}.bf.hu{background:#00ff66}
+.ctrls{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.log{background:#0a101d;border:1px solid #1a3050;border-radius:6px;padding:10px;height:160px;overflow-y:auto;font-size:10px;line-height:1.6;margin-top:10px}
+.log .ln{padding:1px 0}.ln.pa{color:#00ff66}.ln.ea{color:#ff3344}.ln.in{color:#00ffcc}.ln.sm{color:#ffcc00}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:8px 10px;font-size:9px;color:#00ffcc;letter-spacing:1px;border-bottom:1px solid #1a3050;text-transform:uppercase}
+td{padding:8px 10px;font-size:11px;border-bottom:1px solid rgba(26,48,80,.3)}
+tr:hover td{background:rgba(0,255,204,.02)}
+.ta{display:flex;gap:4px}
+.gg{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.sc{background:rgba(10,16,29,.9);border:1px solid #1a3050;border-radius:8px;padding:12px;cursor:pointer;transition:.2s;position:relative}
+.sc:hover{border-color:#00ffcc;transform:translateY(-1px)}
+.sc.cur{border-color:#00ff66;box-shadow:0 0 10px rgba(0,255,102,.1)}
+.sc .sname{font-size:13px;color:#00ffcc;margin-bottom:4px}
+.sc .sinfo{font-size:10px;color:#607080;line-height:1.4}
+.sc .sd{position:absolute;top:8px;right:8px;font-size:9px;color:#ffcc00}
+.sg{display:inline-block;padding:2px 8px;border-radius:4px;font-size:8px;margin-top:4px}
+.g0{background:rgba(255,51,68,.12);color:#ff3344}.g1{background:rgba(255,136,68,.12);color:#ff8844}.g2{background:rgba(204,102,255,.12);color:#cc66ff}.g3{background:rgba(0,136,255,.12);color:#0088ff}.g4{background:rgba(0,255,102,.12);color:#00ff66}.g5{background:rgba(255,204,0,.12);color:#ffcc00}.g6{background:rgba(0,255,204,.12);color:#00ffcc}.g7{background:rgba(255,100,100,.12);color:#ff6464}
+.dock{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.docko{background:rgba(10,16,29,.9);border:1px solid #1a3050;border-radius:8px;padding:14px;text-align:center;cursor:pointer;transition:.2s}
+.docko:hover{border-color:#00ffcc;transform:translateY(-2px)}
+.docko .di{font-size:26px;margin-bottom:6px}
+.docko .dt{font-size:12px;color:#00ffcc;margin-bottom:3px}
+.docko .dd{font-size:9px;color:#607080}
+.shipg{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.shipc{background:rgba(10,16,29,.9);border:1px solid #1a3050;border-radius:8px;padding:12px;text-align:center;transition:.2s}
+.shipc:hover{border-color:#00ffcc}
+.shipc.owned{border-color:#00ff66}
+.shipc .si{font-size:30px;margin-bottom:6px}
+.shipc .sn{font-size:12px;color:#00ffcc;margin-bottom:4px}
+.shipc .ss{font-size:9px;color:#607080;line-height:1.5}
+.shipc .sp{margin-top:6px;font-size:12px;color:#ffcc00;font-weight:bold}
+.mc{background:rgba(10,16,29,.9);border:1px solid #1a3050;border-radius:8px;padding:12px;margin-bottom:8px}
+.mc .mt{font-size:12px;color:#00ffcc;margin-bottom:4px}
+.mc .md{font-size:10px;color:#607080;margin-bottom:4px;line-height:1.4}
+.mc .mr{font-size:11px;color:#ffcc00;font-weight:bold}
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;align-items:center;justify-content:center}
+.mo.on{display:flex}
+.modal{background:#111a2e;border:1px solid #1a3050;border-radius:12px;padding:22px;max-width:460px;width:92%;max-height:75vh;overflow-y:auto}
+.modal h3{text-align:center;color:#00ffcc;font-size:16px;margin-bottom:14px}
+.ma{display:flex;gap:8px;margin-top:14px;justify-content:center}
+.toast-c{position:fixed;top:14px;right:14px;z-index:2000;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.toast{background:#111a2e;border:1px solid #1a3050;border-radius:8px;padding:10px 16px;font-size:12px;animation:si .3s;pointer-events:auto}
+.toast.ok{border-left:4px solid #00ff66}.toast.er{border-left:4px solid #ff3344}.toast.in{border-left:4px solid #00ffcc}
+@keyframes si{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:#080c14}::-webkit-scrollbar-thumb{background:#1a3050;border-radius:3px}
+@media(max-width:700px){.side{width:48px}.side-nav button span:not(.ic){display:none}.side-nav button{justify-content:center;padding:8px}.side-info{display:none}.hdr-l .stat:not(:first-child){display:none}}
+</style>
+</head>
+<body>
+<div id="auth">
+  <div class="auth-box">
+    <h1>ELITE</h1>
+    <div class="sub">КОСМИЧЕСКАЯ ТОРГОВЛЯ И СРАЖЕНИЯ</div>
+    <div class="tabs">
+      <button class="active" onclick="switchTab(0)">ВХОД</button>
+      <button onclick="switchTab(1)">РЕГИСТРАЦИЯ</button>
+    </div>
+    <div id="fLogin">
+      <div class="field"><label>ИМЯ ПИЛОТА</label><input id="uL" placeholder="Логин" autocomplete="off"></div>
+      <div class="field"><label>ПАРОЛЬ</label><input type="password" id="pL" placeholder="Пароль"></div>
+      <div class="err" id="eL"></div>
+      <button class="btn btn-main" onclick="doLogin()">ВОЙТИ</button>
+    </div>
+    <div id="fReg" style="display:none">
+      <div class="field"><label>ИМЯ ПИЛОТА</label><input id="uR" placeholder="Логин" autocomplete="off"></div>
+      <div class="field"><label>ПАРОЛЬ</label><input type="password" id="pR" placeholder="Пароль"></div>
+      <div class="field"><label>ПОВТОРИТЕ</label><input type="password" id="pR2" placeholder="Повторите"></div>
+      <div class="err" id="eR"></div>
+      <button class="btn btn-main" onclick="doReg()">СОЗДАТЬ АККАУНТ</button>
+    </div>
+    <button class="btn btn-guest" style="margin-top:12px;width:100%" onclick="guestLogin()">⚡ Быстрый старт (Гость)</button>
+  </div>
+</div>
+<div id="game">
+  <div class="hdr">
+    <div class="hdr-l">
+      <div class="logo">ELITE</div>
+      <div class="stat">💰 <span id="hCr">0</span></div>
+      <div class="stat">🏆 <span id="hRk">Безобидный</span></div>
+      <div class="stat">🌌 <span id="hSy">Lave</span></div>
+    </div>
+    <div class="hdr-r">
+      <div class="pname" id="hNm">Пилот</div>
+      <button class="btn btn-s" onclick="save()">💾</button>
+      <button class="btn btn-s" style="color:#ff3344;border-color:#ff3344" onclick="logout()">✕</button>
+    </div>
+  </div>
+  <div class="body">
+    <div class="side">
+      <div class="side-nav">
+        <button class="on" onclick="panel('cockpit',this)"><span class="ic">🚀</span><span>Кабина</span></button>
+        <button onclick="panel('station',this)"><span class="ic">🛸</span><span>Станция</span></button>
+        <button onclick="panel('trade',this)"><span class="ic">📦</span><span>Торговля</span></button>
+        <button onclick="panel('galaxy',this)"><span class="ic">🗺️</span><span>Карта</span></button>
+        <button onclick="panel('ship',this)"><span class="ic">🛩️</span><span>Корабль</span></button>
+        <button onclick="panel('rank',this)"><span class="ic">⭐</span><span>Ранг</span></button>
+      </div>
+      <div class="side-info" id="sInfo"></div>
+    </div>
+    <div class="content" id="cnt"></div>
+  </div>
+</div>
+<div class="mo" id="mo" onclick="if(event.target===this)closeMo()"><div class="modal" id="md"></div></div>
+<div class="toast-c" id="tC"></div>
+<script>
+// === УСТОЙЧИВОЕ ХРАНИЛИЩЕ ===
+const memStore={};
+const DB={
+  get(k){try{const v=localStorage.getItem(k);return v!==null?JSON.parse(v):null}catch(e){return memStore[k]!==undefined?JSON.parse(memStore[k]):null}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){memStore[k]=JSON.stringify(v)}}
+};
+
+// === ДАННЫЕ ИГРЫ ===
+const COM=[{n:'Пища',bp:40,v:15},{n:'Текстиль',bp:80,v:30},{n:'Радионика',bp:150,v:50},{n:'Оружие',bp:200,v:80},
+  {n:'Роботы',bp:300,v:100},{n:'Наркотики',bp:500,v:200},{n:'Металлы',bp:100,v:40},{n:'Золото',bp:500,v:150},
+  {n:'Платина',bp:800,v:200},{n:'Алмазы',bp:1200,v:300},{n:'Артефакты',bp:1500,v:400},{n:'Техника',bp:250,v:70},
+  {n:'Запчасти',bp:60,v:20},{n:'Вода',bp:20,v:10},{n:'Специи',bp:350,v:120}];
+const SH=[{n:'Sidewinder',p:0,c:15,s:18,l:0,sh:1,d:'Стартовый'},{n:'Adder',p:14000,c:20,s:16,l:0,sh:1,d:'Грузовой'},
+  {n:'Mamba',p:16000,c:15,s:22,l:0,sh:1,d:'Разведчик'},{n:'Cobra III',p:26000,c:20,s:20,l:1,sh:2,d:'Универсал'},
+  {n:'Anaconda',p:80000,c:80,s:14,l:1,sh:3,d:'Тяжёлый груз.'},{n:'Python',p:120000,c:40,s:20,l:2,sh:3,d:'Крейсер'},
+  {n:'Fer-de-Lance',p:200000,c:30,s:28,l:2,sh:4,d:'Истребитель'},{n:'Krait',p:350000,c:25,s:24,l:2,sh:4,d:'Охотник'},
+  {n:'Eagle II',p:500000,c:50,s:30,l:3,sh:5,d:'Элитный'}];
+const LAS=[{n:'Стандартный',c:0,dm:10},{n:'Пушка',c:5000,dm:20},{n:'Военный',c:15000,dm:35},{n:'Военный II',c:40000,dm:50}];
+const SHU=[{n:'Mk I',c:0,l:1},{n:'Mk II',c:8000,l:2},{n:'Mk III',c:20000,l:3},{n:'Mk IV',c:50000,l:4},{n:'Mk V',c:100000,l:5}];
+const GOV=[{n:'Анархия',c:'g0'},{n:'Хаос',c:'g1'},{n:'Диктатура',c:'g2'},{n:'Демократия',c:'g3'},{n:'Конфедерация',c:'g4'},{n:'Феодализм',c:'g5'},{n:'Корпорация',c:'g6'},{n:'Коммунизм',c:'g7'}];
+const SN=['Alphix','Bethe','Gammix','Deltix','Epsilon','Zeta','Eta','Theta','Iota','Kappa','Lambda','Mu','Nu','Xi','Omicron','Pi','Rho','Sigma','Tau','Upsilon','Phi','Chi','Psi','Omega','Andor','Betel','Caph','Deneb','Elara','Fomal','Gienah','Hadar','Izar','Kocab','Markab','Nunki','Orion','Polaris','Rigel','Sirius','Vega','Altair','Achernar','Canopus','Castor','Denebola','Elnath','Fenir','Aldebaran','Arcturus','Capella','Procyon','Spica','Regulus','Pollux','Mirfak','Shaula','Wezen','Hamal','Menkar','Rasal','Scheat','Tegmen','Adhara','Alcyone','Alnilam','Alnitak','Ankaa','Atik','Baten','Cursa'];
+
+let G={user:null,P:null,sys:[],cs:0,en:[],pr:[],st:[],sa:0,ft:0,docked:true,fight:false,spd:0,gl:null,gl2:null};
+
+// === АВТОРИЗАЦИЯ ===
+function switchTab(i){
+  document.querySelectorAll('.tabs button').forEach((b,j)=>b.classList.toggle('active',i===j));
+  document.getElementById('fLogin').style.display=i===0?'block':'none';
+  document.getElementById('fReg').style.display=i===1?'block':'none';
+  document.getElementById('eL').textContent='';document.getElementById('eR').textContent='';
+}
+function doReg(){
+  const u=document.getElementById('uR').value.trim(),p=document.getElementById('pR').value,p2=document.getElementById('pR2').value,e=document.getElementById('eR');
+  try{
+    if(u.length<3){e.textContent='Минимум 3 символа';return}
+    if(p.length<4){e.textContent='Минимум 4 символа';return}
+    if(p!==p2){e.textContent='Пароли не совпадают';return}
+    const users=DB.get('e_u')||{};if(users[u]){e.textContent='Имя уже занято';return}
+    users[u]={pw:p,t:Date.now()};DB.set('e_u',users);
+    e.textContent='';toast('Аккаунт создан!','ok');switchTab(0);document.getElementById('uL').value=u;
+  }catch(err){console.error(err);e.textContent='Ошибка регистрации. Попробуйте гостевой режим.'}
+}
+function doLogin(){
+  const u=document.getElementById('uL').value.trim(),p=document.getElementById('pL').value,e=document.getElementById('eL');
+  try{
+    if(!u||!p){e.textContent='Заполните все поля';return}
+    const users=DB.get('e_u')||{};if(!users[u]){e.textContent='Пилот не найден';return}
+    if(users[u].pw!==p){e.textContent='Неверный пароль';return}
+    e.textContent='';G.user=u;loadP();
+  }catch(err){console.error(err);e.textContent='Ошибка входа.'}
+}
+function guestLogin(){
+  const guest='Гость_'+Math.floor(Math.random()*9999);
+  G.user=guest;G.P=null;loadP();
+}
+function logout(){
+  save();G.user=null;G.P=null;
+  if(G.gl)cancelAnimationFrame(G.gl);if(G.gl2)cancelAnimationFrame(G.gl2);
+  document.getElementById('auth').classList.remove('hidden');document.getElementById('game').classList.remove('active');
+  document.getElementById('pL').value='';document.getElementById('uL').value='';
+}
+
+// === ИГРОК И ЗАГРУЗКА ===
+function defP(){return{name:G.user,credits:1000,rank:0,kills:0,cs:0,ship:'Sidewinder',cargo:{},cc:15,fuel:100,mf:100,hull:100,mh:100,sh:100,msh:100,sl:1,ld:10,eq:{l:0,s:0,scoop:false},vis:[0]}}
+function genGal(){const s=[],used=new Set();for(let i=0;i<32;i++){let nm;do{nm=SN[i%SN.length]+(i>=24?'-'+Math.floor(i/24):'')}while(used.has(nm));used.add(nm);s.push({id:i,name:nm,g:Math.floor(Math.random()*8),eco:Math.floor(Math.random()*8),tech:Math.floor(Math.random()*14)+1,x:(Math.random()-.5)*100,y:(Math.random()-.5)*100,prices:genP(Math.floor(Math.random()*8),Math.floor(Math.random()*14)+1)});}return s}
+function genP(eco,tech){const p={};COM.forEach((c,i)=>{let v=c.bp+(tech-7)*10+(eco-4)*5+(Math.random()-.5)*c.v;p[i]=Math.max(10,Math.floor(v))});return p}
+
+function loadP(){
+  try{
+    const d=DB.get('ep_'+G.user);G.P=d?JSON.parse(d):defP();
+    const gs=DB.get('eg');if(gs){try{G.sys=JSON.parse(gs)}catch(e){G.sys=genGal()}}
+    if(!G.sys||!G.sys.length)G.sys=genGal();
+    G.sys.forEach(s=>s.prices=genP(s.eco,s.tech));DB.set('eg',G.sys);
+    G.cs=G.P.cs||0;G.docked=true;G.en=[];G.pr=[];
+    document.getElementById('auth').classList.add('hidden');document.getElementById('game').classList.add('active');
+    upd();panel('cockpit',document.querySelector('.side-nav button'));
+    toast('Добро пожаловать, '+G.P.name+'!','ok');
+  }catch(e){console.error('Ошибка загрузки:',e);toast('Критическая ошибка загрузки','er')}
+}
+function save(){try{if(!G.P)return;G.P.cs=G.cs;DB.set('ep_'+G.user,G.P);toast('Сохранено','ok')}catch(e){console.warn('Сохранение недоступно')}}
+function rN(r){return['Безобидный','Безобидный+','Бедный','Средний','Средний+','Компетентный','Опасный','Смертоносный','Элита'][Math.min(r,8)]}
+function rC(r){return['r0','r0','r2','r3','r3','r5','r6','r7','r8'][Math.min(r,8)]}
+
+// === ИНТЕРФЕЙС ===
+function upd(){
+  if(!G.P)return;
+  document.getElementById('hCr').textContent=G.P.credits.toLocaleString()+' Cr';
+  document.getElementById('hRk').textContent=rN(G.P.rank);
+  document.getElementById('hSy').textContent=G.sys[G.cs]?.name||'?';
+  document.getElementById('hNm').textContent=G.P.name;
+  const si=document.getElementById('sInfo');if(!si)return;
+  const cc=Object.values(G.P.cargo).reduce((a,b)=>a+b,0);
+  si.innerHTML=`<div class="row"><span>Корабль:</span><span class="v">${G.P.ship}</span></div>
+  <div class="row"><span>Топливо:</span><span class="v">${Math.floor(G.P.fuel)}%</span></div>
+  <div class="row"><span>Корпус:</span><span class="v">${Math.floor(G.P.hull)}%</span></div>
+  <div class="row"><span>Щиты:</span><span class="v">${Math.floor(G.P.sh)}%</span></div>
+  <div class="row"><span>Груз:</span><span class="v">${cc}/${G.P.cc}</span></div>
+  <div class="row"><span>Лазер:</span><span class="v">${LAS[G.P.eq.l].n}</span></div>`;
+}
+function toast(m,t='in'){const c=document.getElementById('tC'),d=document.createElement('div');d.className='toast '+t;d.textContent=m;c.appendChild(d);setTimeout(()=>d.remove(),2800)}
+function showMo(h){document.getElementById('md').innerHTML=h;document.getElementById('mo').classList.add('on')}
+function closeMo(){document.getElementById('mo').classList.remove('on')}
+
+// === ПАНЕЛИ ===
+function panel(p,btn){
+  document.querySelectorAll('.side-nav button').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  const c=document.getElementById('cnt');
+  switch(p){case'cockpit':rCockpit(c);break;case'station':rStation(c);break;case'trade':rTrade(c);break;case'galaxy':rGalaxy(c);break;case'ship':rShip(c);break;case'rank':rRank(c);break}
+}
+
+// === КАБИНА И РЕНДЕР ===
+function rCockpit(c){
+  const sy=G.sys[G.cs];
+  c.innerHTML=`<div class="cockpit" id="cv"><canvas id="cv2"></canvas>
+  <div class="hud">
+    <div class="hud-t"><div class="sn" id="hSN">${sy.name}</div><div class="st" id="hSS">СТАНЦИЯ: ШВАРТОВКА</div></div>
+    <div class="hud-b"><div class="hi"><div class="hl">СКОРОСТЬ</div><div class="hv" id="hSP">0</div></div>
+    <div class="hi"><div class="hl">ДИСТАНЦИЯ</div><div class="hv" id="hDI">--</div></div>
+    <div class="hi"><div class="hl">ВРАГИ</div><div class="hv" id="hEN">0</div></div></div>
+    <div class="hud-l"><div class="hud-box"><h4>КОРАБЛЬ</h4>
+      <div class="bar-c"><div class="bl">Энергия</div><div class="bar"><div class="bf e" id="bE" style="width:100%"></div></div></div>
+      <div class="bar-c"><div class="bl">Щиты</div><div class="bar"><div class="bf sh" id="bS" style="width:100%"></div></div></div>
+      <div class="bar-c"><div class="bl">Корпус</div><div class="bar"><div class="bf hu" id="bH" style="width:100%"></div></div></div>
+      <div class="bar-c"><div class="bl">Топливо</div><div class="bar"><div class="bf fu" id="bF" style="width:100%"></div></div></div>
+    </div></div>
+  </div></div>
+  <div class="ctrls">
+    <button class="btn btn-ok" onclick="fly()">🚀 Полёт</button>
+    <button class="btn btn-s" onclick="dock()">⚓ Швартовка</button>
+    <button class="btn btn-r" onclick="combat()">⚔️ Бой</button>
+    <button class="btn btn-s" onclick="scoop()">🔥 Сборка</button>
+  </div>
+  <div class="log" id="log"></div>`;
+  setTimeout(initC,50);
+}
+
+function initC(){
+  const cv=document.getElementById('cv2');if(!cv)return;
+  const r=cv.parentElement.getBoundingClientRect();cv.width=r.width;cv.height=r.height;
+  const x=cv.getContext('2d');
+  G.st=[];for(let i=0;i<200;i++)G.st.push({x:Math.random()*cv.width,y:Math.random()*cv.height,z:Math.random()*1000,s:Math.random()*2+.5});
+  G.sa=0;G.ft=0;G.spd=0;G.en=[];G.pr=[];
+  if(G.gl)cancelAnimationFrame(G.gl);
+  function dr(){
+    x.fillStyle='#000';x.fillRect(0,0,cv.width,cv.height);
+    const cx=cv.width/2,cy=cv.height/2;
+    G.st.forEach(s=>{s.z-=s.s*(G.spd+.5);if(s.z<=0){s.z=1000;s.x=Math.random()*cv.width;s.y=Math.random()*cv.height}
+      const sx=(s.x-cx)*(500/s.z)+cx,sy=(s.y-cy)*(500/s.z)+cy,sz=Math.max(.5,(1000-s.z)/400);
+      x.fillStyle=`rgba(180,200,240,${Math.min(1,(1000-s.z)/300)})`;x.fillRect(sx,sy,sz,sz)});
+    if(G.docked||G.ft>600){G.sa+=.004;drSt(x,cx,cy-15,45,G.sa)}
+    G.en.forEach((e,idx)=>{if(e.alive){drEn(x,cx+Math.sin(G.sa*3+idx*2)*120,cy-15+Math.cos(G.sa*2+idx*3)*60,e)}});
+    G.pr=G.pr.filter(p=>p.l>0);G.pr.forEach(p=>{x.strokeStyle=p.e?'#ff3344':'#00ffcc';x.lineWidth=2;x.beginPath();x.moveTo(p.x,p.y);x.lineTo(p.x+p.dx*8,p.y+p.dy*8);x.stroke();p.x+=p.dx;p.y+=p.dy;p.l--});
+    const sp=document.getElementById('hSP');if(sp)sp.textContent=Math.floor(G.spd*10);
+    const di=document.getElementById('hDI');if(di)di.textContent=G.ft>600?'0.0':Math.max(0,(600-G.ft)/10).toFixed(1);
+    const en=document.getElementById('hEN');if(en)en.textContent=G.en.filter(e=>e.alive).length;
+    const bE=document.getElementById('bE'),bS=document.getElementById('bS'),bH=document.getElementById('bH'),bF=document.getElementById('bF');
+    if(bE)bE.style.width='100%';if(bS)bS.style.width=G.P.sh+'%';if(bH)bH.style.width=G.P.hull+'%';if(bF)bF.style.width=G.P.fuel+'%';
+    G.ft+=G.spd*.5;G.gl=requestAnimationFrame(dr);
+  }
+  dr();
+}
+function drSt(x,cx,cy,sz,a){
+  x.strokeStyle='#00ffcc';x.lineWidth=1.5;x.shadowColor='#00ffcc';x.shadowBlur=6;
+  x.beginPath();x.ellipse(cx,cy,sz*2,sz*.6,a,0,Math.PI*2);x.stroke();
+  x.beginPath();x.ellipse(cx,cy,sz*.8,sz*.3,-a,0,Math.PI*2);x.stroke();
+  for(let i=0;i<4;i++){const an=a+Math.PI/2*i;x.beginPath();x.moveTo(cx+Math.cos(an)*sz*.5,cy+Math.sin(an)*sz*.2);x.lineTo(cx+Math.cos(an)*sz*2,cy+Math.sin(an)*sz*.6);x.stroke()}
+  x.beginPath();x.arc(cx,cy,sz*.15,0,Math.PI*2);x.stroke();
+  x.beginPath();x.moveTo(cx,cy-sz*.2);x.lineTo(cx,cy-sz*1.1);x.stroke();
+  x.shadowBlur=0;
+}
+function drEn(x,cx,cy,e){
+  x.strokeStyle='#ff3344';x.lineWidth=1.5;x.shadowColor='#ff3344';x.shadowBlur=5;
+  x.beginPath();x.moveTo(cx,cy-15);x.lineTo(cx-11,cy+7);x.lineTo(cx-6,cy+11);x.lineTo(cx,cy+3);x.lineTo(cx+6,cy+11);x.lineTo(cx+11,cy+7);x.closePath();x.stroke();
+  x.beginPath();x.moveTo(cx-6,cy+3);x.lineTo(cx-18,cy+14);x.lineTo(cx-11,cy+7);x.stroke();
+  x.beginPath();x.moveTo(cx+6,cy+3);x.lineTo(cx+18,cy+14);x.lineTo(cx+11,cy+7);x.stroke();
+  x.fillStyle='#ff6644';x.beginPath();x.arc(cx-3,cy+12,2,0,Math.PI*2);x.arc(cx+3,cy+12,2,0,Math.PI*2);x.fill();
+  x.shadowBlur=0;
+}
+function alog(m,t='in'){const l=document.getElementById('log');if(!l)return;const d=document.createElement('div');d.className='ln '+t;d.textContent='['+new Date().toLocaleTimeString('ru-RU')+'] '+m;l.appendChild(d);l.scrollTop=l.scrollHeight}
+function fly(){if(G.fight){toast('Бой!','er');return}G.spd=3;G.docked=false;G.en=[];alog('Двигатели запущены...','in');setTimeout(()=>{G.spd=0;G.docked=true;G.ft=0;alog('Прибытие в '+G.sys[G.cs].name,'in');toast('Прибыли','ok')},2000)}
+function dock(){if(G.fight){toast('Сначала победа!','er');return}G.docked=true;G.spd=0;G.en=[];G.pr=[];alog('Швартовка!','sm');if(G.P.sh<G.P.msh){G.P.sh=Math.min(G.P.msh,G.P.sh+10);alog('Щиты: '+Math.floor(G.P.sh)+'%','in')}upd();save()}
+function combat(){
+  if(G.fight)return;G.fight=true;G.docked=false;G.spd=2;G.pr=[];G.en=[];
+  const names=['Пират','Контрабандист','Наёмник','Разбойник'];
+  for(let i=0;i<Math.floor(Math.random()*3)+1;i++)G.en.push({nm:names[Math.floor(Math.random()*4)],h:30+Math.floor(Math.random()*40),mh:30+Math.floor(Math.random()*40),dmg:5+Math.floor(Math.random()*10),alive:true,last:0});
+  alog('⚔️ БОЙ! '+G.en.length+' врагов!','sm');
+  let ct=0;
+  function cl(){
+    if(!G.fight)return;ct++;
+    G.en.forEach(e=>{if(!e.alive)return;if(ct-e.last>30+Math.random()*40){e.last=ct;const dm=Math.max(0,e.dmg-G.P.sl*3),sa=Math.min(G.P.sh,dm*.6);G.P.sh-=sa;G.P.hull-=(dm-sa);if(G.P.sh<0)G.P.sh=0;if(G.P.hull<=0){G.P.hull=0;endC(false);return}alog(e.nm+' → '+dm+' урона!','ea')}});
+    if(ct%25===0)G.en.forEach(e=>{if(!e.alive)return;e.h-=G.P.ld;if(e.h<=0){e.alive=false;G.P.kills++;const rw=100+Math.floor(Math.random()*200);G.P.credits+=rw;updR();alog(e.nm+' уничтожен! +'+rw,'pa')}});
+    if(G.en.length&&G.en.every(e=>!e.alive)){endC(true);return}
+    upd();G.gl2=requestAnimationFrame(cl);
+  }
+  cl();
+}
+function endC(w){G.fight=false;G.spd=0;if(w){alog('🏆 Победа!','sm');toast('Победа!','ok');G.P.rank=Math.min(8,Math.floor(G.P.kills/5))}else{alog('💀 Корабль уничтожен! -500 Cr','ea');G.P.credits=Math.max(0,G.P.credits-500);G.P.hull=50;G.P.sh=50;G.docked=true;toast('Погибли! -500','er')}G.en=[];G.pr=[];upd();save()}
+function updR(){const nr=Math.min(8,Math.floor(G.P.kills/5));if(nr>G.P.rank){G.P.rank=nr;toast('Ранг: '+rN(nr)+'!','ok');alog('⭐ '+rN(nr)+'!','sm')}}
+function scoop(){if(!G.P.eq.scoop){toast('Нужен сборщик!','er');return}if(G.fight){toast('Не в бою!','er');return}G.P.fuel=Math.min(G.P.mf,G.P.fuel+25);alog('Топливо: '+Math.floor(G.P.fuel)+'%','in');toast('Топливо собрано','ok');upd()}
+
+// === СТАНЦИЯ ===
+function rStation(c){const sy=G.sys[G.cs];c.innerHTML=`<div class="panel"><h2>🛸 СТАНЦИЯ — ${sy.name}</h2><p style="text-align:center;font-size:11px;margin-bottom:14px">Правительство: <span class="sg ${GOV[sy.g].c}">${GOV[sy.g].n}</span> &nbsp; Технологии: ${sy.tech}</p>
+    <div class="dock"><div class="docko" onclick="mRepair()"><div class="di">🔧</div><div class="dt">Ремонт</div><div class="dd">1 Cr / 1 HP</div></div>
+    <div class="docko" onclick="mRefuel()"><div class="di">⛽</div><div class="dt">Заправка</div><div class="dd">5 Cr / 10%</div></div>
+    <div class="docko" onclick="mEquip()"><div class="di">🔩</div><div class="dt">Оборудование</div><div class="dd">Лазеры, щиты</div></div>
+    <div class="docko" onclick="mBar()"><div class="di">🍺</div><div class="dt">Бар</div><div class="dd">Слухи</div></div>
+    <div class="docko" onclick="mShips()"><div class="di">🛒</div><div class="dt">Корабли</div><div class="dd">Купить</div></div>
+    <div class="docko" onclick="sellAll()"><div class="di">💰</div><div class="dt">Продать всё</div><div class="dd">Сброс груза</div></div></div></div>`}
+function mRepair(){const n=G.P.mh-G.P.hull;if(n<=0){toast('Корпус полный!','in');return}showMo(`<h3>🔧 РЕМОНТ</h3><p style="text-align:center;font-size:12px;margin:12px 0">Корпус: ${Math.floor(G.P.hull)}/${G.P.mh}<br>Нужно: ${Math.ceil(n)} Cr</p><div class="ma"><button class="btn btn-ok" onclick="doRepair(${Math.ceil(n)})">Ремонт</button><button class="btn btn-s" onclick="closeMo()">Отмена</button></div>`)}
+function doRepair(c){if(G.P.credits<c){toast('Нет Cr!','er');return}G.P.credits-=c;G.P.hull=G.P.mh;closeMo();upd();toast('Ремонт!','ok');save()}
+function mRefuel(){const n=G.P.mf-G.P.fuel;if(n<=0){toast('Полный бак!','in');return}const cost=Math.ceil(n/10)*5;showMo(`<h3>⛽ ЗАПРАВКА</h3><p style="text-align:center;font-size:12px;margin:12px 0">Топливо: ${Math.floor(G.P.fuel)}/${G.P.mf}%<br>Стоимость: ${cost} Cr</p><div class="ma"><button class="btn btn-ok" onclick="doRefuel(${cost})">Заправить</button><button class="btn btn-s" onclick="closeMo()">Отмена</button></div>`)}
+function doRefuel(c){if(G.P.credits<c){toast('Нет Cr!','er');return}G.P.credits-=c;G.P.fuel=G.P.mf;closeMo();upd();toast('Заправлено!','ok');save()}
+function mEquip(){const cl=LAS[G.P.eq.l],nl=LAS[G.P.eq.l+1],cs=SHU[G.P.eq.s],ns=SHU[G.P.eq.s+1];let lb=nl?`<button class="btn btn-ok" onclick="buyLas(${nl.c})">${nl.n} (${nl.c} Cr)</button>`:'<span style="color:#00ff66">Макс</span>';let sb=ns?`<button class="btn btn-ok" onclick="buyShu(${ns.c})">${ns.n} (${ns.c} Cr)</button>`:'<span style="color:#00ff66">Макс</span>';let scb=!G.P.eq.scoop?`<button class="btn btn-ok" onclick="buyScoop()">Сборщик (5000 Cr)</button>`:'<span style="color:#00ff66">✓ Есть</span>';showMo(`<h3>🔩 ОБОРУДОВАНИЕ</h3><div style="margin:8px 0"><b style="font-size:11px">Лазер:</b> ${cl.n} (${cl.dm} урон)<br>${lb}</div><div style="margin:8px 0"><b style="font-size:11px">Щиты:</b> ${cs.n} (ур. ${cs.l})<br>${sb}</div><div style="margin:8px 0"><b style="font-size:11px">Сборщик:</b><br>${scb}</div><div style="margin:8px 0"><b style="font-size:11px">Трюм:</b> +5 слотов (3000 Cr)<br><button class="btn btn-ok" onclick="buyCargo()">Расширить</button></div><div class="ma"><button class="btn btn-s" onclick="closeMo()">Закрыть</button></div>`)}
+function buyLas(c){if(G.P.credits<c){toast('Нет Cr!','er');return}G.P.credits-=c;G.P.eq.l++;G.P.ld=LAS[G.P.eq.l].dm;closeMo();upd();toast('Лазер+','ok');save()}
+function buyShu(c){if(G.P.credits<c){toast('Нет Cr!','er');return}G.P.credits-=c;G.P.eq.s++;G.P.sl=SHU[G.P.eq.s].l;G.P.msh=50+G.P.sl*30;G.P.sh=G.P.msh;closeMo();upd();toast('Щиты+','ok');save()}
+function buyScoop(){if(G.P.credits<5000){toast('Нет Cr!','er');return}G.P.credits-=5000;G.P.eq.scoop=true;closeMo();upd();toast('Сборщик!','ok');save()}
+function buyCargo(){if(G.P.credits<3000){toast('Нет Cr!','er');return}G.P.credits-=3000;G.P.cc+=5;closeMo();upd();toast('Трюм+','ok');save()}
+function mBar(){const r=['Цены на алмазы в '+G.sys[(G.cs+1)%32].name+' высокие!','Пираты в секторе!','Дешёвая пища в '+G.sys[(G.cs+3)%32].name,'В '+G.sys[(G.cs+5)%32].name+' артефакты!','Платина в '+G.sys[(G.cs+2)%32].name+' x3 от обычной цены.'];showMo(`<h3>🍺 БАР</h3><div style="background:#0a101d;border:1px solid #1a3050;border-radius:6px;padding:12px;margin:10px 0"><p style="font-size:11px;color:#00ffcc;font-style:italic">"${r[Math.floor(Math.random()*r.length)]}"</p></div><p style="text-align:center;font-size:10px;color:#607080">Напиток: 50 Cr (+5 HP)</p><div class="ma"><button class="btn btn-s" onclick="closeMo()">Уйти</button><button class="btn btn-ok" onclick="buyDrink()">Пить</button></div>`)}
+function buyDrink(){if(G.P.credits<50){toast('Нет Cr!','er');return}G.P.credits-=50;G.P.hull=Math.min(G.P.mh,G.P.hull+5);closeMo();upd();toast('+5 HP','ok');save()}
+function mShips(){let h='<h3>🛒 КОРАБЛИ</h3><p style="text-align:center;font-size:11px;margin-bottom:10px">Баланс: <span style="color:#ffcc00">'+G.P.credits.toLocaleString()+' Cr</span></p><div class="shipg">';SH.forEach((s,i)=>{const own=G.P.ship===s.n,can=G.P.credits>=s.p;h+=`<div class="shipc ${own?'owned':''}"><div class="si">🚀</div><div class="sn">${s.n}</div><div class="ss">Груз:${s.c} Скор:${s.s}<br>Лазер:${LAS[s.l].n} Щит:${s.sh}<br><em style="color:#607080">${s.d}</em></div><div class="sp">${s.p===0?'Бесплатно':s.p.toLocaleString()+' Cr'}</div>${own?'<span style="color:#00ff66;font-size:10px">✓ Ваш</span>':`<button class="btn btn-ok" style="margin-top:4px" onclick="buyShip(${i})" ${!can?'disabled style="opacity:.5"':''}>Купить</button>`}</div>`});h+='</div><div class="ma"><button class="btn btn-s" onclick="closeMo()">Закрыть</button></div>';showMo(h)}
+function buyShip(i){const s=SH[i];if(G.P.credits<s.p){toast('Нет Cr!','er');return}G.P.credits-=s.p;G.P.ship=s.n;G.P.cc=s.c;G.P.mh=50+s.sh*30;G.P.hull=G.P.mh;G.P.msh=50+s.sh*30;G.P.sh=G.P.msh;G.P.cargo={};closeMo();upd();toast('Куплен '+s.n+'!','ok');save()}
+function sellAll(){const sy=G.sys[G.cs];let t=0,n=0;Object.entries(G.P.cargo).forEach(([i,q])=>{if(q>0){t+=(sy.prices[i]||COM[i].bp)*q;n+=q}});if(!n){toast('Пусто!','in');return}G.P.credits+=t;G.P.cargo={};upd();toast('Продано '+n+' за '+t.toLocaleString()+' Cr','ok');save()}
+
+// === ТОРГОВЛЯ ===
+function rTrade(c){const sy=G.sys[G.cs],cc=Object.values(G.P.cargo).reduce((a,b)=>a+b,0);let rows='';COM.forEach((cm,i)=>{const pr=sy.prices[i],inC=G.P.cargo[i]||0;rows+=`<tr><td>${cm.n}</td><td style="color:#ff3344">${pr.toLocaleString()}</td><td style="color:#00ff66">${Math.floor(pr*.7).toLocaleString()}</td><td>${inC}</td><td><div class="ta"><button class="btn btn-ok" onclick="buyC(${i},1)" ${G.P.credits<pr||G.P.cc-cc<=0?'disabled style="opacity:.5"':''}>+1</button><button class="btn btn-ok" onclick="buyC(${i},5)" ${G.P.credits<pr*5||G.P.cc-cc<5?'disabled style="opacity:.5"':''}>+5</button><button class="btn btn-r" onclick="sellC(${i},1)" ${inC<=0?'disabled style="opacity:.5"':''}>-1</button><button class="btn btn-r" onclick="sellC(${i},${inC})" ${inC<=0?'disabled style="opacity:.5"':''}>Всё</button></div></td></tr>`});c.innerHTML=`<div class="panel"><h2>📦 РЫНОК — ${sy.name}</h2><p style="font-size:10px;margin-bottom:8px">Груз: ${cc}/${G.P.cc}</p><div style="overflow-x:auto"><table><thead><tr><th>Товар</th><th>Покупка</th><th>Продажа</th><th>Трюм</th><th>Действия</th></tr></thead><tbody>${rows}</tbody></table></div></div>`}
+function buyC(i,q){const sy=G.sys[G.cs],pr=sy.prices[i],cc=Object.values(G.P.cargo).reduce((a,b)=>a+b,0),sp=G.P.cc-cc;const aq=Math.min(q,sp);if(aq<=0){toast('Нет места!','er');return}const cost=pr*aq;if(G.P.credits<cost){toast('Нет Cr!','er');return}G.P.credits-=cost;G.P.cargo[i]=(G.P.cargo[i]||0)+aq;upd();toast('Куплено '+aq+' '+COM[i].n,'ok');rTrade(document.getElementById('cnt'));save()}
+function sellC(i,q){if(!G.P.cargo[i]||G.P.cargo[i]<=0)return;const sy=G.sys[G.cs],sp=Math.floor(sy.prices[i]*.7),aq=Math.min(q,G.P.cargo[i]);G.P.credits+=sp*aq;G.P.cargo[i]-=aq;if(G.P.cargo[i]<=0)delete G.P.cargo[i];upd();toast('Продано '+aq+' '+COM[i].n,'ok');rTrade(document.getElementById('cnt'));save()}
+
+// === ГАЛАКТИКА ===
+function rGalaxy(c){const cur=G.sys[G.cs];let cards='';G.sys.forEach((sy,idx)=>{const dist=Math.sqrt(Math.pow(sy.x-cur.x,2)+Math.pow(sy.y-cur.y,2)).toFixed(1),isC=idx===G.cs,can=G.P.fuel>=dist*2;cards+=`<div class="sc ${isC?'cur':''}" onclick="goTo(${idx})"><div class="sd">${dist} св.лет</div><div class="sname">${sy.name}</div><div class="sinfo">Правительство: ${GOV[sy.g].n}<br>Технологии: ${sy.tech}</div><span class="sg ${GOV[sy.g].c}">${GOV[sy.g].n}</span>${isC?'<br><span style="color:#00ff66;font-size:9px">Вы здесь</span>':`<br><span style="color:${can?'#00ff66':'#ff3344'};font-size:9px">${can?'✅ Лететь':'❌ Нет топлива'}</span>`}</div>`});c.innerHTML=`<div class="panel"><h2>🗺️ КАРТА ГАЛАКТИКИ</h2><p style="font-size:10px;margin-bottom:8px">Топливо: ${Math.floor(G.P.fuel)}%</p><div class="gg">${cards}</div></div>`}
+function goTo(idx){if(idx===G.cs){toast('Вы здесь!','in');return}const cur=G.sys[G.cs],tgt=G.sys[idx],dist=Math.sqrt(Math.pow(tgt.x-cur.x,2)+Math.pow(tgt.y-cur.y,2));const fn=Math.ceil(dist*2);if(G.P.fuel<fn){toast('Нужно '+fn+'% топлива!','er');return}showMo(`<h3>🚀 ПЕРЛЁТ</h3><p style="text-align:center;font-size:12px;margin:12px 0">${cur.name} → ${tgt.name}<br>${dist.toFixed(1)} св.лет<br>Топливо: ${fn}%<br><span style="color:#ffcc00">${dist>40?'Опасно!':dist>20?'Средне':'Безопасно'}</span></p><div class="ma"><button class="btn btn-s" onclick="closeMo()">Отмена</button><button class="btn btn-ok" onclick="doGo(${idx},${fn})">Лететь!</button></div>`)}
+function doGo(idx,fn){G.P.fuel-=fn;G.cs=idx;if(!G.P.vis.includes(idx))G.P.vis.push(idx);if(Math.random()<.3){closeMo();upd();rCockpit(document.getElementById('cnt'));combat();toast('Напали!','er')}else{closeMo();upd();toast('Прибытие в '+G.sys[idx].name,'ok');rCockpit(document.getElementById('cnt'))}save()}
+
+// === КОРАБЛЬ И РАНГ ===
+function rShip(c){const ship=SH.find(s=>s.n===G.P.ship)||SH[0],cc=Object.values(G.P.cargo).reduce((a,b)=>a+b,0);let cl=cc===0?'<p style="color:#607080;text-align:center;padding:12px">Пусто</p>':'<table><thead><tr><th>Товар</th><th>Кол-во</th></tr></thead><tbody>';Object.entries(G.P.cargo).forEach(([i,q])=>{if(q>0)cl+=`<tr><td>${COM[i].n}</td><td>${q}</td></tr>`});if(cc>0)cl+='</tbody></table>';c.innerHTML=`<div class="panel"><h2>🛩️ ${G.P.ship}</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:11px"><div><p><b>Тип:</b> ${ship.d}</p><p><b>Трюм:</b> ${cc}/${G.P.cc}</p><p><b>Корпус:</b> ${Math.floor(G.P.hull)}/${G.P.mh}</p><p><b>Щиты:</b> ${Math.floor(G.P.sh)}/${G.P.msh}</p><p><b>Топливо:</b> ${Math.floor(G.P.fuel)}/${G.P.mf}%</p></div><div><p><b>Лазер:</b> ${LAS[G.P.eq.l].n} (${G.P.ld} урон)</p><p><b>Щиты:</b> ур.${G.P.sl}</p><p><b>Сборщик:</b> ${G.P.eq.scoop?'✅':'❌'}</p></div></div></div><div class="panel"><h2>ГРУЗ</h2>${cl}</div>`}
+function rRank(c){const rn=[{n:'Безобидный',k:0},{n:'Безобидный+',k:5},{n:'Бедный',k:10},{n:'Средний',k:20},{n:'Средний+',k:35},{n:'Компетентный',k:50},{n:'Опасный',k:75},{n:'Смертоносный',k:100},{n:'Элита',k:150}];const cr=G.P.rank;let h='';rn.forEach((r,i)=>{const ach=i<=cr,isC=i===cr;h+=`<div style="background:${isC?'rgba(0,255,204,.06)':'rgba(10,16,29,.9)'};border:${isC?'1px solid #00ffcc':'1px solid #1a3050'};border-radius:6px;padding:8px 12px;margin-bottom:5px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px;color:${ach?'#00ffcc':'#607080'}">${r.n}</span><span style="font-size:10px;color:${ach?'#00ff66':'#607080'}">${ach?'✅':'🔒'} ${r.k} убийств</span></div>`});c.innerHTML=`<div class="panel"><h2>⭐ РАНГ</h2><span class="sg ${rC(cr)}" style="font-size:12px;padding:4px 12px">${rN(cr)}</span><div style="text-align:center;margin:12px 0"><div style="font-size:40px;margin-bottom:4px">🏆</div><div style="font-size:18px;color:#00ffcc">${rN(cr)}</div></div>${h}</div>`}
+
+// === УПРАВЛЕНИЕ И СОБЫТИЯ ===
+document.addEventListener('keydown',e=>{
+  if(G.fight&&e.code==='Space'){e.preventDefault();G.en.forEach(en=>{if(en.alive){en.h-=G.P.ld;if(en.h<=0){en.alive=false;G.P.kills++;const rw=100+Math.floor(Math.random()*200);G.P.credits+=rw;updR();alog(en.nm+' уничтожен! +'+rw,'pa')}}});upd()}
+  if(e.code==='Enter'){const au=document.getElementById('auth');if(!au.classList.contains('hidden')){if(document.getElementById('fLogin').style.display!=='none')doLogin();else doReg()}}
+});
+window.addEventListener('resize',()=>{const cv=document.getElementById('cv2');if(cv){const r=cv.parentElement.getBoundingClientRect();cv.width=r.width;cv.height=r.height}});
+setInterval(()=>{if(G.P&&G.user)save()},60000);
+</script>
+</body>
+</html>
