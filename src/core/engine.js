@@ -105,6 +105,12 @@ export function getState() {
   return gameState
 }
 
+// Internal helper: get current system object (without using imported function)
+function getCurrentSys() {
+  if (gameState.galaxy.length === 0) return null
+  return gameState.galaxy[gameState.currentSystem] || null
+}
+
 // Travel to system
 export function travelTo(systemId) {
   const fromSystem = getSystemById(gameState.galaxy, gameState.currentSystem)
@@ -154,7 +160,7 @@ export function travelTo(systemId) {
 
 // Start combat with enhanced enemy AI
 function startCombat() {
-  const system = getCurrentSystem()
+  const system = getCurrentSys()
   const gov = system ? gameState.galaxy[system.id]?.government || 0 : 0
   
   // Determine enemy count based on rank and government
@@ -700,4 +706,10 @@ export function sellToMarket(commodityId, quantity, price) {
   saveGame()
   
   return { success: true, quantity: sellQuantity, revenue: revenue }
+}
+
+// Get current system object (exported for main.js)
+export function getCurrentSystemInfo() {
+  if (gameState.galaxy.length === 0) return null
+  return gameState.galaxy[gameState.currentSystem] || null
 }

@@ -8,11 +8,17 @@
     "build": "vite build",
     "preview": "vite preview"
   },
-  "keywords": ["game", "elite", "space", "trading"],
+  "keywords": [
+    "game",
+    "elite",
+    "space",
+    "trading"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "vite": "^7.3.2",
-    "vite-plugin-pwa": "^1.2.0"
+    "vite-plugin-pwa": "^1.2.0",
+    "vitest": "^4.1.4"
   }
 }

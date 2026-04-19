@@ -19,18 +19,55 @@ export const COMMODITIES = [
   { name: 'Water', basePrice: 20, variance: 10, icon: '💧' }
 ]
 
-// Ship definitions with visual descriptions
+// Ship definitions with visual descriptions and SVG paths
 export const SHIPS = [
-  { name: 'Sidewinder', price: 0, cargo: 15, maxSpeed: 18, laser: 1, shield: 1, description: 'Стартовый корабль', color: '#4a9eff', shape: 'fighter' },
-  { name: 'Adder', price: 14000, cargo: 20, maxSpeed: 16, laser: 1, shield: 1, description: 'Фреighter', color: '#6aff6a', shape: 'freighter' },
-  { name: 'Mamba', price: 16000, cargo: 15, maxSpeed: 22, laser: 1, shield: 1, description: 'Гонщик', color: '#ff6b6b', shape: 'racer' },
-  { name: 'Cobra III', price: 26000, cargo: 20, maxSpeed: 20, laser: 2, shield: 2, description: 'Универсальный', color: '#ffa500', shape: 'multi' },
-  { name: 'Anaconda', price: 80000, cargo: 80, maxSpeed: 14, laser: 2, shield: 3, description: 'Тяжёлый фрахтовщик', color: '#9370db', shape: 'heavy' },
-  { name: 'Python', price: 120000, cargo: 40, maxSpeed: 20, laser: 3, shield: 3, description: 'Крейсер', color: '#ff69b4', shape: 'cruiser' },
-  { name: 'Fer-de-Lance', price: 200000, cargo: 30, maxSpeed: 28, laser: 3, shield: 4, description: 'Истребитель', color: '#00ced1', shape: 'fighter' },
-  { name: 'Krait', price: 350000, cargo: 25, maxSpeed: 24, laser: 3, shield: 4, description: 'Охотник', color: '#da70d6', shape: 'hunter' },
-  { name: 'Eagle II', price: 500000, cargo: 50, maxSpeed: 30, laser: 4, shield: 5, description: 'Элитный истребитель', color: '#ffd700', shape: 'elite' }
+  { name: 'Sidewinder', price: 0, cargo: 15, maxSpeed: 18, laser: 1, shield: 1, description: 'Стартовый корабль', color: '#4a9eff', 
+    svg: '<path d="M16 2 L22 8 L22 12 L18 10 L18 18 L14 18 L14 10 L10 12 L10 8 Z" fill="currentColor"/>',
+    stats: { agility: 8, cargo: 15,Lasers: 1, shields: 1, speed: 18 } },
+  { name: 'Adder', price: 14000, cargo: 20, maxSpeed: 16, laser: 1, shield: 1, description: 'Грузовой корабль', color: '#6aff6a',
+    svg: '<path d="M16 2 L24 8 L26 14 L24 20 L22 22 L18 20 L18 14 L14 14 L14 20 L10 22 L8 20 L6 14 L8 8 Z" fill="currentColor"/>',
+    stats: { agility: 5, cargo: 20, lasers: 1, shields: 1, speed: 16 } },
+  { name: 'Mamba', price: 16000, cargo: 15, maxSpeed: 22, laser: 1, shield: 1, description: 'Гоночный корабль', color: '#ff6b6b',
+    svg: '<path d="M16 2 L20 6 L22 8 L20 12 L18 8 L18 18 L14 18 L14 8 L12 12 L10 8 L8 6 Z" fill="currentColor"/>',
+    stats: { agility: 9, cargo: 15, lasers: 1, shields: 1, speed: 22 } },
+  { name: 'Cobra III', price: 26000, cargo: 20, maxSpeed: 20, laser: 2, shield: 2, description: 'Универсальный корабль', color: '#ffa500',
+    svg: '<path d="M16 2 L24 6 L24 10 L26 14 L24 18 L22 22 L18 20 L18 12 L14 12 L14 20 L10 22 L8 18 L6 14 L8 10 L8 6 Z" fill="currentColor"/>',
+    stats: { agility: 7, cargo: 20, lasers: 2, shields: 2, speed: 20 } },
+  { name: 'Anaconda', price: 80000, cargo: 80, maxSpeed: 14, laser: 2, shield: 3, description: 'Тяжёлый грузовик', color: '#9370db',
+    svg: '<path d="M12 2 L20 4 L24 8 L26 14 L26 20 L24 24 L20 26 L12 26 L8 26 L4 24 L2 20 L2 14 L4 8 L8 4 Z M12 8 L16 10 L16 18 L12 20 Z" fill="currentColor"/>',
+    stats: { agility: 3, cargo: 80, lasers: 2, shields: 3, speed: 14 } },
+  { name: 'Python', price: 120000, cargo: 40, maxSpeed: 20, laser: 3, shield: 3, description: 'Военный крейсер', color: '#ff69b4',
+    svg: '<path d="M12 2 L20 4 L24 8 L24 12 L28 16 L26 22 L22 24 L16 24 L14 20 L16 16 L16 12 L14 12 L14 16 L12 20 L10 24 L4 24 L2 22 L2 16 L6 12 L6 8 L8 4 Z" fill="currentColor"/>',
+    stats: { agility: 5, cargo: 40, lasers: 3, shields: 3, speed: 20 } },
+  { name: 'Fer-de-Lance', price: 200000, cargo: 30, maxSpeed: 28, laser: 3, shield: 4, description: 'Элитный истребитель', color: '#00ced1',
+    svg: '<path d="M16 2 L20 6 L22 8 L20 12 L18 10 L18 18 L14 18 L14 10 L12 12 L10 8 L8 6 Z M10 12 L6 14 L6 16 L10 16 Z M22 12 L26 14 L26 16 L22 16 Z" fill="currentColor"/>',
+    stats: { agility: 9, cargo: 30, lasers: 3, shields: 4, speed: 28 } },
+  { name: 'Krait', price: 350000, cargo: 25, maxSpeed: 24, laser: 3, shield: 4, description: 'Охотник за головами', color: '#da70d6',
+    svg: '<path d="M16 2 L22 8 L22 12 L24 16 L22 22 L18 20 L18 14 L16 14 L16 20 L12 22 L10 16 L12 12 L12 8 Z M14 14 L18 14 L18 18 L14 18 Z" fill="currentColor"/>',
+    stats: { agility: 8, cargo: 25, lasers: 3, shields: 4, speed: 24 } },
+  { name: 'Eagle II', price: 500000, cargo: 50, maxSpeed: 30, laser: 4, shield: 5, description: 'Элитный боевой', color: '#ffd700',
+    svg: '<path d="M16 2 L22 6 L22 10 L26 14 L24 22 L20 24 L16 24 L12 24 L8 22 L6 14 L10 10 L10 6 Z M12 10 L16 12 L20 10 L16 16 Z" fill="currentColor"/>',
+    stats: { agility: 10, cargo: 50, lasers: 4, shields: 5, speed: 30 } }
 ]
+
+// Extra equipment types
+export const EQUIPMENT = {
+  fuelTanks: [
+    { name: 'Доп. бак I', price: 1500, capacity: 20, description: '+20 к топливу', icon: '⛽' },
+    { name: 'Доп. бак II', price: 3500, capacity: 40, description: '+40 к топливу', icon: '⛽' },
+    { name: 'Доп. бак III', price: 7000, capacity: 60, description: '+60 к топливу', icon: '⛽' }
+  ],
+  cargoRacks: [
+    { name: 'Грузовой отсек +5', price: 2000, capacity: 5, description: '+5 к грузу', icon: '📦' },
+    { name: 'Грузовой отсек +10', price: 4500, capacity: 10, description: '+10 к грузу', icon: '📦' },
+    { name: 'Грузовой отсек +20', price: 10000, capacity: 20, description: '+20 к грузу', icon: '📦' }
+  ],
+  energy: [
+    { name: 'Энергоячейка I', price: 2500, capacity: 20, description: '+20 энергия щитов', icon: '⚡' },
+    { name: 'Энергоячейка II', price: 6000, capacity: 40, description: '+40 энергия щитов', icon: '⚡' },
+    { name: 'Энергоячейка III', price: 12000, capacity: 60, description: '+60 энергия щитов', icon: '⚡' }
+  ]
+}
 
 // Laser types
 export const LASERS = [
@@ -70,7 +107,7 @@ export const STAR_NAMES = [
   'Orion', 'Polaris', 'Rigel', 'Sirius', 'Vega', 'Altair', 'Achernar', 'Canopus',
   'Castor', 'Denebola', 'Elnath', 'Fenir', 'Aldebaran', 'Arcturus', 'Capella', 'Procyon',
   'Spica', 'Regulus', 'Pollux', 'Mirfak', 'Shaula', 'Wezen', 'Hamal', 'Menkar'
-]
+].filter(n => n) // Remove empty entries
 
 // Rank names with bonuses
 export const RANKS = [

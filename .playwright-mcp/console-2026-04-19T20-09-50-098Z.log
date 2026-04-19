@@ -1,0 +1,25 @@
+[      59ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:4173/:0
+[      59ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:4173/:0
+[      59ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:4173/:0
+[      63ms] [WARNING] <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes"> @ http://localhost:4173/:0
+[   67488ms] [WARNING] Save failed: ReferenceError: storage_KEY_PLAYER is not defined
+    at h (http://localhost:4173/assets/index-Dd4PQIOA.js:1:9368)
+    at http://localhost:4173/assets/index-Dd4PQIOA.js:47:1797 @ http://localhost:4173/assets/index-Dd4PQIOA.js:0
+[   69513ms] [LOG] App content: 
+    <div class="layout">
+      <aside class="sidebar">
+        <h1>ELITE ZX</h1>
+        
+        <div class="sidebar-stats">
+          <div class="stat">
+            <span class="stat-label">Кредиты @ :0
+[   94861ms] [WARNING] Save failed: ReferenceError: storage_KEY_PLAYER is not defined
+    at h (http://localhost:4173/assets/index-Dd4PQIOA.js:1:9368)
+    at ie (http://localhost:4173/assets/index-Dd4PQIOA.js:1:11021)
+    at window.dockAtStation (http://localhost:4173/assets/index-Dd4PQIOA.js:161:3937)
+    at eval (eval at evaluate (:302:30), <anonymous>:1:14)
+    at UtilityScript.evaluate (<anonymous>:304:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44) @ http://localhost:4173/assets/index-Dd4PQIOA.js:0
+[  127488ms] [WARNING] Save failed: ReferenceError: storage_KEY_PLAYER is not defined
+    at h (http://localhost:4173/assets/index-Dd4PQIOA.js:1:9368)
+    at http://localhost:4173/assets/index-Dd4PQIOA.js:47:1797 @ http://localhost:4173/assets/index-Dd4PQIOA.js:0

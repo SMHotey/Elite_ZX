@@ -1,0 +1,39 @@
+- generic [ref=e2]:
+  - generic [ref=e17]:
+    - complementary [ref=e18]:
+      - heading "ELITE ZX" [level=1] [ref=e19]
+      - generic [ref=e20]:
+        - generic [ref=e21]: Кредиты 1 000 Cr
+        - generic [ref=e22]: Ранг Безвредный
+        - generic [ref=e23]: Система Alphix
+      - navigation [ref=e24]:
+        - button "🚀 КАБИНА" [ref=e25] [cursor=pointer]
+        - button "🛸 СТАНЦИЯ" [ref=e26] [cursor=pointer]
+        - button "📦 РЫНОК" [ref=e27] [cursor=pointer]
+        - button "🗺️ КАРТА" [ref=e28] [cursor=pointer]
+        - button "🛩️ КОРАБЛЬ" [ref=e29] [cursor=pointer]
+        - button "⭐ РАНГ" [ref=e30] [cursor=pointer]
+      - generic [ref=e31]:
+        - button "💾 СОХРАНИТЬ" [ref=e32]
+        - button "✕ ВЫХОД" [ref=e33]
+    - main [ref=e34]:
+      - generic [ref=e35]:
+        - generic [ref=e37]: 🚀 КОКПИТ
+        - generic [ref=e38]:
+          - generic:
+            - generic: 📍 Alphix
+            - generic: ⏱️ СТАНЦИЯ
+        - generic [ref=e40]:
+          - generic [ref=e41]: ЭНЕРГИЯ
+          - generic [ref=e44]: ЩИТЫ
+          - generic [ref=e47]: КОРПУС
+          - generic [ref=e50]: ТОПЛИВО
+      - generic [ref=e53]:
+        - generic [ref=e55]: УПРАВЛЕНИЕ
+        - generic [ref=e56]:
+          - button "🚀 ПОЛЁТ" [ref=e57]
+          - button "⚓ ШВАРТОВКА" [ref=e58]
+          - button "⚔️ БОЙ" [ref=e59]
+          - button "🔥 СБОРКА" [ref=e60]
+      - generic [ref=e63]: ЖУРНАЛ
+  - generic [ref=e64]: Добро пожаловать, пилот!

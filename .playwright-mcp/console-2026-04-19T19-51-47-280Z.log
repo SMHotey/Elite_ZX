@@ -1,0 +1,7 @@
+[      61ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:4173/:0
+[      62ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:4173/:0
+[      62ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:4173/:0
+[      65ms] [WARNING] <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes"> @ http://localhost:4173/:0
+[   69658ms] [WARNING] Save failed: ReferenceError: storage_KEY_PLAYER is not defined
+    at h (http://localhost:4173/assets/index-Dd4PQIOA.js:1:9368)
+    at http://localhost:4173/assets/index-Dd4PQIOA.js:47:1797 @ http://localhost:4173/assets/index-Dd4PQIOA.js:0
