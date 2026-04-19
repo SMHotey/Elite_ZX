@@ -1,7 +1,7 @@
 // === GAME ENGINE ===
 import { createPlayer, getCargoAmount, calculateRank, getLaserDamage, getShieldLevel, calculateMaxShields, calculateMaxHull } from './player.js'
 import { generateGalaxy, generatePrices, distance, fuelCost, getSystemById } from './galaxy.js'
-import { ENEMY_TYPES } from './gameData.js'
+import { ENEMY_TYPES, LASERS, SHIELDS, POLICE_LEVELS, RANKS } from './gameData.js'
 
 const STORAGE_KEY_USER = 'e_u'
 const storage_KEY_GALAXY = 'eg'
@@ -20,8 +20,12 @@ let gameState = {
   enemies: [],
   projectiles: [],
   stars: [],
+  particles: [],
   animationId: null,
-  lastUpdate: 0
+  lastUpdate: 0,
+  policeLevel: 0,
+  missions: [],
+  combatLog: []
 }
 
 // Initialize game
@@ -40,7 +44,11 @@ export function initGame(username) {
     flightTime: 0,
     enemies: [],
     projectiles: [],
-    stars: []
+    stars: [],
+    particles: [],
+    policeLevel: 0,
+    missions: [],
+    combatLog: []
   }
   
   return gameState
@@ -144,19 +152,35 @@ export function travelTo(systemId) {
   }
 }
 
-// Start combat
+// Start combat with enhanced enemy AI
 function startCombat() {
-  const enemyCount = Math.floor(Math.random() * 3) + 1
+  const system = getCurrentSystem()
+  const gov = system ? gameState.galaxy[system.id]?.government || 0 : 0
+  
+  // Determine enemy count based on rank and government
+  const baseEnemyCount = Math.floor(Math.random() * 3) + 1
+  const rankBonus = Math.floor(gameState.player.rank / 2)
+  const enemyCount = Math.min(5, baseEnemyCount + rankBonus)
+  
   gameState.enemies = []
+  gameState.particles = []
   
   for (let i = 0; i < enemyCount; i++) {
     const type = ENEMY_TYPES[Math.floor(Math.random() * ENEMY_TYPES.length)]
+    const healthBonus = gameState.player.rank * 5
     gameState.enemies.push({
       ...type,
-      health: type.baseHealth + Math.floor(Math.random() * 40),
-      maxHealth: type.baseHealth + Math.floor(Math.random() * 40),
+      id: i,
+      health: type.baseHealth + healthBonus + Math.floor(Math.random() * 40),
+      maxHealth: type.baseHealth + healthBonus + Math.floor(Math.random() * 40),
       alive: true,
-      lastAttack: 0
+      lastAttack: 0,
+      x: (Math.random() - 0.5) * 200,
+      y: (Math.random() - 0.5) * 150,
+      vx: (Math.random() - 0.5) * type.speed,
+      vy: (Math.random() - 0.5) * type.speed,
+      targetX: 0,
+      targetY: 0
     })
   }
   
@@ -164,34 +188,96 @@ function startCombat() {
   gameState.docked = false
   gameState.speed = 2
   gameState.projectiles = []
+  gameState.lastUpdate = Date.now()
+  
+  addCombatLog(`⚠️ АТАКА! ${enemyCount} врагов приближаются!`)
 }
 
-// Combat update
+// Add combat log entry
+function addCombatLog(message) {
+  gameState.combatLog.push({
+    time: Date.now(),
+    message
+  })
+  if (gameState.combatLog.length > 50) {
+    gameState.combatLog.shift()
+  }
+}
+
+// Combat update with enhanced AI and particle effects
 export function updateCombat(timestamp) {
   if (!gameState.inCombat) return
   
   const player = gameState.player
   const dt = timestamp - gameState.lastUpdate
+  gameState.lastUpdate = timestamp
   
-  // Enemy attacks
+  // Update enemy AI and movement
   gameState.enemies.forEach(enemy => {
     if (!enemy.alive) return
     
-    const attackInterval = 30000 + Math.random() * 40000
+    // Move towards player
+    const dx = -enemy.x
+    const dy = -enemy.y
+    const dist = Math.sqrt(dx * dx + dy * dy)
+    
+    if (dist > 0) {
+      enemy.vx += (dx / dist) * 0.05 * enemy.aggression
+      enemy.vy += (dy / dist) * 0.05 * enemy.aggression
+    }
+    
+    // Apply velocity with damping
+    enemy.x += enemy.vx
+    enemy.y += enemy.vy
+    enemy.vx *= 0.98
+    enemy.vy *= 0.98
+    
+    // Keep enemies in bounds
+    enemy.x = Math.max(-150, Math.min(150, enemy.x))
+    enemy.y = Math.max(-100, Math.min(100, enemy.y))
+    
+    // Enemy attacks
+    const attackInterval = 30000 / enemy.aggression + Math.random() * 40000
     if (timestamp - enemy.lastAttack > attackInterval) {
       enemy.lastAttack = timestamp
       
-      const damage = Math.max(0, enemy.damage - getShieldLevel(player) * 3)
-      const shieldAbsorb = Math.min(player.shields, damage * 0.6)
+      const baseDamage = enemy.damage
+      const shieldLevel = getShieldLevel(player)
+      const shieldAbsorb = Math.min(player.shields, baseDamage * 0.6 * (shieldLevel * 0.2))
       
       player.shields -= shieldAbsorb
-      player.hull -= (damage - shieldAbsorb)
+      const hullDamage = baseDamage - shieldAbsorb
+      player.hull -= Math.max(0, hullDamage)
+      
+      addCombatLog(`💥 Враг атакует! -${Math.floor(hullDamage)} HP`)
+      
+      // Create hit particle
+      gameState.particles.push({
+        x: 0,
+        y: 0,
+        vx: (Math.random() - 0.5) * 10,
+        vy: (Math.random() - 0.5) * 10,
+        life: 20,
+        color: '#ff4444',
+        size: 3
+      })
       
       if (player.hull <= 0) {
         player.hull = 0
         endCombat(false)
       }
     }
+  })
+  
+  // Update particles
+  gameState.particles = gameState.particles.filter(p => {
+    p.x += p.vx
+    p.y += p.vy
+    p.vx *= 0.95
+    p.vy *= 0.95
+    p.life--
+    p.size *= 0.95
+    return p.life > 0
   })
   
   // Check for victory
@@ -204,63 +290,107 @@ export function updateCombat(timestamp) {
   player.maxHull = calculateMaxHull(player)
 }
 
-// Fire weapon
-export function fireWeapon() {
+// Fire weapon with enhanced effects
+export function fireWeapon(targetEnemyId = null) {
   if (!gameState.inCombat) return
   
-  const damage = getLaserDamage(gameState.player)
+  const laser = LASERS[gameState.player.laser]
+  const damage = laser.damage * (1 + RANKS[gameState.player.rank]?.bonus || 0)
   
+  // Create projectile
   gameState.projectiles.push({
     x: 0,
     y: 0,
+    dx: 0,
+    dy: -1,
     damage: damage,
     life: 30,
-    isEnemy: false
+    isEnemy: false,
+    color: laser.color
   })
   
-  // Damage enemies
-  gameState.enemies.forEach(enemy => {
-    if (!enemy.alive) return
+  // Find target - either specified or first alive enemy
+  let target = null
+  if (targetEnemyId !== null) {
+    target = gameState.enemies.find(e => e.id === targetEnemyId && e.alive)
+  }
+  if (!target) {
+    target = gameState.enemies.find(e => e.alive)
+  }
+  
+  if (target) {
+    // Damage enemy
+    target.health -= damage
     
-    enemy.health -= damage
+    // Create hit particles
+    for (let i = 0; i < 5; i++) {
+      gameState.particles.push({
+        x: target.x,
+        y: target.y,
+        vx: (Math.random() - 0.5) * 8,
+        vy: (Math.random() - 0.5) * 8,
+        life: 15 + Math.random() * 10,
+        color: target.color || '#ff4444',
+        size: 2 + Math.random() * 3
+      })
+    }
     
-    if (enemy.health <= 0) {
-      enemy.alive = false
+    addCombatLog(`🎯 Выстрел! -${Math.floor(damage)} HP ${target.name}`)
+    
+    if (target.health <= 0) {
+      target.alive = false
       gameState.player.kills++
       
-      const reward = 100 + Math.floor(Math.random() * 200)
+      const rankBonus = RANKS[gameState.player.rank]?.bonus || 0
+      const reward = Math.floor(target.reward * (1 + rankBonus))
       gameState.player.credits += reward
+      
+      addCombatLog(`💀 ${target.name} уничтожен! +${reward} Cr`)
       
       // Update rank
       const newRank = calculateRank(gameState.player.kills)
       if (newRank > gameState.player.rank) {
         gameState.player.rank = newRank
+        addCombatLog(`⭐ ПОВЫШЕНИЕ! ${RANKS[newRank].name}!`)
       }
     }
-  })
+  }
 }
 
-// End combat
+// End combat with rewards and penalties
 function endCombat(victory) {
   gameState.inCombat = false
   gameState.speed = 0
-  gameState.enemies = []
   gameState.projectiles = []
   
   if (victory) {
-    // Bonus reward already added in fireWeapon
+    // Victory bonus
+    const victoryBonus = 50 + Math.floor(Math.random() * 100)
+    gameState.player.credits += victoryBonus
+    addCombatLog(`🏆 ПОБЕДА! Бонус: +${victoryBonus} Cr`)
+    
+    // Chance to find cargo from wreckage
+    if (Math.random() < 0.3) {
+      const commodityId = Math.floor(Math.random() * 5)
+      const quantity = Math.floor(Math.random() * 3) + 1
+      gameState.player.cargo[commodityId] = (gameState.player.cargo[commodityId] || 0) + quantity
+      addCombatLog(`📦 Найдено в обломках: ${quantity} ${COMMODITIES[commodityId].name}`)
+    }
   } else {
-    // Destroyed - penalty
-    gameState.player.credits = Math.max(0, gameState.player.credits - 500)
-    gameState.player.hull = 50
-    gameState.player.shields = 50
+    // Defeated - penalty
+    const penalty = Math.min(500, gameState.player.credits)
+    gameState.player.credits -= penalty
+    gameState.player.hull = 20
+    gameState.player.shields = 10
+    addCombatLog(`💀 ПОРАЖЕНИЕ! Потеряно ${penalty} Cr`)
   }
   
+  gameState.enemies = []
   gameState.docked = true
   saveGame()
 }
 
-// Dock at station
+// Dock at station with enhanced services
 export function dock() {
   gameState.docked = true
   gameState.speed = 0
@@ -268,13 +398,26 @@ export function dock() {
   gameState.enemies = []
   gameState.projectiles = []
   
-  // Recharge shields
+  // Recharge shields based on shield level
+  const shieldRecharge = SHIELDS[gameState.player.shield]?.recharge || 0.5
+  const rechargeAmount = Math.floor(gameState.player.maxShields * shieldRecharge)
   gameState.player.shields = Math.min(
     gameState.player.maxShields,
-    gameState.player.shields + Math.floor(gameState.player.maxShields * 0.1)
+    gameState.player.shields + rechargeAmount
   )
   
+  addCombatLog('⚓ Швартовка на станции')
   saveGame()
+}
+
+// Get combat log
+export function getCombatLog() {
+  return gameState.combatLog
+}
+
+// Get particles
+export function getParticles() {
+  return gameState.particles
 }
 
 // Start flying
@@ -286,7 +429,7 @@ export function launch() {
   gameState.flightTime = 0
 }
 
-// Update stars
+// Update stars with enhanced graphics and particle effects
 export function updateStars(canvas, timestamp) {
   const stars = gameState.stars
   
@@ -297,7 +440,8 @@ export function updateStars(canvas, timestamp) {
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
         z: Math.random() * 1000,
-        speed: Math.random() * 2 + 0.5
+        speed: Math.random() * 2 + 0.5,
+        twinkle: Math.random() * Math.PI * 2
       })
     }
   }
@@ -306,12 +450,17 @@ export function updateStars(canvas, timestamp) {
   const cx = canvas.width / 2
   const cy = canvas.height / 2
   
-  // Clear and draw
-  ctx.fillStyle = '#000'
+  // Clear with gradient background
+  const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, canvas.width)
+  gradient.addColorStop(0, '#0a1628')
+  gradient.addColorStop(1, '#000000')
+  ctx.fillStyle = gradient
   ctx.fillRect(0, 0, canvas.width, canvas.height)
   
+  // Draw stars with twinkling effect
   stars.forEach(star => {
     star.z -= star.speed * (gameState.speed + 0.5)
+    star.twinkle += 0.05
     
     if (star.z <= 0) {
       star.z = 1000
@@ -323,118 +472,181 @@ export function updateStars(canvas, timestamp) {
     const sy = (star.y - cy) * (500 / star.z) + cy
     const sz = Math.max(0.5, (1000 - star.z) / 400)
     
-    const alpha = Math.min(1, (1000 - star.z) / 300)
-    ctx.fillStyle = `rgba(180, 200, 240, ${alpha})`
-    ctx.fillRect(sx, sy, sz, sz)
+    const alpha = Math.min(1, (1000 - star.z) / 300) * (0.7 + 0.3 * Math.sin(star.twinkle))
+    ctx.fillStyle = `rgba(180, 200, 255, ${alpha})`
+    ctx.beginPath()
+    ctx.arc(sx, sy, sz, 0, Math.PI * 2)
+    ctx.fill()
   })
   
-  // Draw station if docked
+  // Draw station if docked or arriving
   if (gameState.docked || gameState.flightTime > 600) {
     gameState.flightTime += 0.004
     drawStation(ctx, cx, cy - 15, 45, gameState.flightTime)
   }
   
-  // Draw enemies
+  // Draw enemies in combat
   if (gameState.inCombat) {
     gameState.enemies.forEach((enemy, idx) => {
       if (enemy.alive) {
-        drawEnemy(ctx, cx + Math.sin(gameState.flightTime * 3 + idx * 2) * 120, cy - 15 + Math.cos(gameState.flightTime * 2 + idx * 3) * 60, enemy)
+        drawEnemy(ctx, cx + enemy.x, cy + enemy.y, enemy, gameState.flightTime)
       }
+    })
+    
+    // Draw particles
+    gameState.particles.forEach(p => {
+      ctx.fillStyle = p.color
+      ctx.globalAlpha = p.life / 20
+      ctx.beginPath()
+      ctx.arc(cx + p.x, cy + p.y, p.size, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.globalAlpha = 1
     })
   }
   
   // Draw projectiles
   gameState.projectiles = gameState.projectiles.filter(p => p.life > 0)
   gameState.projectiles.forEach(p => {
-    ctx.strokeStyle = p.isEnemy ? '#ff3344' : '#00ffcc'
-    ctx.lineWidth = 2
+    ctx.strokeStyle = p.color || (p.isEnemy ? '#ff3344' : '#00ffcc')
+    ctx.lineWidth = 3
+    ctx.shadowColor = p.color || (p.isEnemy ? '#ff3344' : '#00ffcc')
+    ctx.shadowBlur = 10
     ctx.beginPath()
-    ctx.moveTo(p.x, p.y)
-    ctx.lineTo(p.x + p.dx * 8, p.y + p.dy * 8)
+    ctx.moveTo(cx + p.x, cy + p.y)
+    ctx.lineTo(cx + p.x + p.dx * 8, cy + p.y + p.dy * 8)
     ctx.stroke()
-    p.x += p.dx
-    p.y += p.dy
+    ctx.shadowBlur = 0
+    p.x += p.dx * 5
+    p.y += p.dy * 5
     p.life--
   })
 }
 
+// Draw enhanced station with more detail
 function drawStation(ctx, cx, cy, size, angle) {
-  ctx.strokeStyle = '#00ffcc'
-  ctx.lineWidth = 1.5
-  ctx.shadowColor = '#00ffcc'
-  ctx.shadowBlur = 6
+  ctx.save()
   
-  // Main ring
+  // Outer glow
+  ctx.shadowColor = '#00ffcc'
+  ctx.shadowBlur = 20
+  
+  // Main ring with gradient
+  const ringGradient = ctx.createLinearGradient(cx - size * 2, cy, cx + size * 2, cy)
+  ringGradient.addColorStop(0, 'rgba(0, 255, 204, 0.3)')
+  ringGradient.addColorStop(0.5, 'rgba(0, 255, 204, 1)')
+  ringGradient.addColorStop(1, 'rgba(0, 255, 204, 0.3)')
+  
+  ctx.strokeStyle = ringGradient
+  ctx.lineWidth = 2
   ctx.beginPath()
-  ctx.ellipse(cx, cy, size * 2, size * 0.6, angle, 0, Math.PI * 2)
+  ctx.ellipse(cx, cy, size * 2, size * 0.7, angle, 0, Math.PI * 2)
   ctx.stroke()
   
   // Inner ring
+  ctx.strokeStyle = 'rgba(0, 200, 255, 0.8)'
   ctx.beginPath()
-  ctx.ellipse(cx, cy, size * 0.8, size * 0.3, -angle, 0, Math.PI * 2)
+  ctx.ellipse(cx, cy, size * 0.9, size * 0.35, -angle, 0, Math.PI * 2)
   ctx.stroke()
   
-  // Spokes
-  for (let i = 0; i < 4; i++) {
-    const an = angle + Math.PI / 2 * i
+  // Rotating spokes
+  for (let i = 0; i < 6; i++) {
+    const an = angle + Math.PI / 3 * i
+    ctx.strokeStyle = `rgba(0, 255, 204, ${0.5 + 0.5 * Math.sin(Date.now() / 500 + i)})`
     ctx.beginPath()
-    ctx.moveTo(cx + Math.cos(an) * size * 0.5, cy + Math.sin(an) * size * 0.2)
-    ctx.lineTo(cx + Math.cos(an) * size * 2, cy + Math.sin(an) * size * 0.6)
+    ctx.moveTo(cx + Math.cos(an) * size * 0.6, cy + Math.sin(an) * size * 0.25)
+    ctx.lineTo(cx + Math.cos(an) * size * 2, cy + Math.sin(an) * size * 0.7)
     ctx.stroke()
   }
   
-  // Center
+  // Center hub with glow
+  ctx.fillStyle = '#00ffcc'
+  ctx.shadowBlur = 15
   ctx.beginPath()
-  ctx.arc(cx, cy, size * 0.15, 0, Math.PI * 2)
+  ctx.arc(cx, cy, size * 0.2, 0, Math.PI * 2)
+  ctx.fill()
+  
+  // Antenna array
+  ctx.strokeStyle = '#00aaff'
+  ctx.shadowBlur = 8
+  ctx.beginPath()
+  ctx.moveTo(cx, cy - size * 0.25)
+  ctx.lineTo(cx, cy - size * 1.2)
   ctx.stroke()
   
-  // Antenna
+  // Antenna tip
+  ctx.fillStyle = '#ff6600'
   ctx.beginPath()
-  ctx.moveTo(cx, cy - size * 0.2)
-  ctx.lineTo(cx, cy - size * 1.1)
-  ctx.stroke()
+  ctx.arc(cx, cy - size * 1.2, 3, 0, Math.PI * 2)
+  ctx.fill()
   
-  ctx.shadowBlur = 0
+  ctx.restore()
 }
 
-function drawEnemy(ctx, cx, cy, enemy) {
-  ctx.strokeStyle = '#ff3344'
-  ctx.lineWidth = 1.5
-  ctx.shadowColor = '#ff3344'
-  ctx.shadowBlur = 5
+// Draw enhanced enemy ship with animations
+function drawEnemy(ctx, cx, cy, enemy, time) {
+  ctx.save()
   
-  // Ship body
+  // Enemy glow based on health
+  const healthRatio = enemy.health / enemy.maxHealth
+  ctx.shadowColor = enemy.color || '#ff4444'
+  ctx.shadowBlur = 10 + 5 * (1 - healthRatio)
+  
+  // Ship body with color based on type
+  ctx.strokeStyle = enemy.color || '#ff4444'
+  ctx.lineWidth = 2
+  
+  // Pulsing effect when damaged
+  const pulse = 1 + 0.2 * Math.sin(time * 10) * (1 - healthRatio)
+  
   ctx.beginPath()
-  ctx.moveTo(cx, cy - 15)
-  ctx.lineTo(cx - 11, cy + 7)
-  ctx.lineTo(cx - 6, cy + 11)
-  ctx.lineTo(cx, cy + 3)
-  ctx.lineTo(cx + 6, cy + 11)
-  ctx.lineTo(cx + 11, cy + 7)
+  ctx.moveTo(cx, cy - 15 * pulse)
+  ctx.lineTo(cx - 12 * pulse, cy + 8 * pulse)
+  ctx.lineTo(cx - 7 * pulse, cy + 12 * pulse)
+  ctx.lineTo(cx, cy + 4 * pulse)
+  ctx.lineTo(cx + 7 * pulse, cy + 12 * pulse)
+  ctx.lineTo(cx + 12 * pulse, cy + 8 * pulse)
   ctx.closePath()
   ctx.stroke()
   
-  // Wings
+  // Wings with animation
+  const wingAngle = Math.sin(time * 5) * 0.2
+  ctx.save()
+  ctx.translate(cx - 6 * pulse, cy + 4 * pulse)
+  ctx.rotate(wingAngle)
   ctx.beginPath()
-  ctx.moveTo(cx - 6, cy + 3)
-  ctx.lineTo(cx - 18, cy + 14)
-  ctx.lineTo(cx - 11, cy + 7)
+  ctx.moveTo(0, 0)
+  ctx.lineTo(-12 * pulse, 10 * pulse)
+  ctx.lineTo(-7 * pulse, 4 * pulse)
   ctx.stroke()
+  ctx.restore()
   
+  ctx.save()
+  ctx.translate(cx + 6 * pulse, cy + 4 * pulse)
+  ctx.rotate(-wingAngle)
   ctx.beginPath()
-  ctx.moveTo(cx + 6, cy + 3)
-  ctx.lineTo(cx + 18, cy + 14)
-  ctx.lineTo(cx + 11, cy + 7)
+  ctx.moveTo(0, 0)
+  ctx.lineTo(12 * pulse, 10 * pulse)
+  ctx.lineTo(7 * pulse, 4 * pulse)
   ctx.stroke()
+  ctx.restore()
   
-  // Engine glow
-  ctx.fillStyle = '#ff6644'
+  // Engine glow with flicker
+  const engineFlicker = 0.8 + 0.4 * Math.random()
+  ctx.fillStyle = `rgba(255, 100, 50, ${engineFlicker})`
   ctx.beginPath()
-  ctx.arc(cx - 3, cy + 12, 2, 0, Math.PI * 2)
-  ctx.arc(cx + 3, cy + 12, 2, 0, Math.PI * 2)
+  ctx.arc(cx - 4 * pulse, cy + 13 * pulse, 2.5 * pulse, 0, Math.PI * 2)
+  ctx.arc(cx + 4 * pulse, cy + 13 * pulse, 2.5 * pulse, 0, Math.PI * 2)
   ctx.fill()
   
-  ctx.shadowBlur = 0
+  // Health bar above enemy
+  const barWidth = 40
+  const barHeight = 4
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'
+  ctx.fillRect(cx - barWidth / 2, cy - 25, barWidth, barHeight)
+  ctx.fillStyle = healthRatio > 0.5 ? '#00ff00' : healthRatio > 0.25 ? '#ffff00' : '#ff0000'
+  ctx.fillRect(cx - barWidth / 2, cy - 25, barWidth * healthRatio, barHeight)
+  
+  ctx.restore()
 }
 
 // Get current system
